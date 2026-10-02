@@ -29,8 +29,8 @@ import os
 import sys
 
 import joblib
-import pandas as pd
 from flask import Flask, jsonify, render_template, request
+
 from flask_cors import CORS
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "features"))
@@ -156,9 +156,9 @@ def predict_url(url: str) -> dict:
     # Any column the model expects but we didn't compute (e.g. because
     # inference tier < training tier) gets filled with -1 ("unknown"),
     # matching how missing tier 2/3 values were handled during training.
-    row = {col: raw_features.get(col, -1) for col in feature_columns}
-    X = pd.DataFrame([row], columns=feature_columns)
-    X_scaled = scaler.transform(X)
+    row = [raw_features.get(col, -1) for col in feature_columns]
+    X_scaled = scaler.transform([row])
+
 
     pred = model.predict(X_scaled)[0]
     proba = model.predict_proba(X_scaled)[0][1] if hasattr(model, "predict_proba") else None
