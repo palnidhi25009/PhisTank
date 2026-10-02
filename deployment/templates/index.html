@@ -352,8 +352,9 @@ form.addEventListener('submit', async (e) => {
       `;
     }
   } catch (err) {
-    resultBox.innerHTML = `<div class="error-box">Couldn't reach the server. Is app.py still running?</div>`;
+    resultBox.innerHTML = `<div class="error-box">Unable to reach the API server. Please check your internet connection or try again.</div>`;
   }
+
 
   resultBox.classList.add('visible');
   btn.disabled = false;

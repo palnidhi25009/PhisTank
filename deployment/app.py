@@ -80,7 +80,7 @@ except FileNotFoundError as e:
 # for a responsive web UI. Change to 2 or 3 if you trained the model on
 # a higher tier (must match training tier or predictions will be
 # meaningless, since the model won't have learned those columns).
-INFERENCE_TIER = 2
+INFERENCE_TIER = 1
 
 # --- Trusted hostname allowlist ---
 #
