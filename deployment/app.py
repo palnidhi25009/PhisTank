@@ -38,8 +38,10 @@ from feature_extractor import extract_features  # noqa: E402
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "..", "models")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=TEMPLATE_DIR)
+
 
 # CORS is required so the browser extension (running under a
 # chrome-extension:// origin) can call this API from a different host
@@ -193,8 +195,13 @@ def predict_url(url: str) -> dict:
 
 
 @app.route("/")
+@app.route("/index")
+@app.route("/index.py")
+@app.route("/api/index")
+@app.route("/api/index.py")
 def index():
     return render_template("index.html")
+
 
 
 @app.route("/api/check", methods=["POST"])
