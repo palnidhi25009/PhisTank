@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: phishing-detector-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn deployment.app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

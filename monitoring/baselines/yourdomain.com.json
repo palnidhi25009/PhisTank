@@ -1,0 +1,34 @@
+{
+  "domain": "yourdomain.com",
+  "checked_at": "2026-09-05T13:02:13.569534+00:00",
+  "dns": {
+    "ip_addresses": [
+      "192.124.249.6"
+    ],
+    "error": null
+  },
+  "ip_org": {
+    "org": "Sucuri",
+    "isp": "Sucuri",
+    "asn": "AS30148 Sucuri",
+    "country": "US",
+    "error": null
+  },
+  "certificate": {
+    "fingerprint_sha256": null,
+    "issuer": null,
+    "subject_cn": null,
+    "not_before": null,
+    "not_after": null,
+    "error": "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'yourdomain.com'. (_ssl.c:1032)"
+  },
+  "whois": {
+    "registrar": "GoDaddy.com, LLC",
+    "nameservers": [
+      "ns03.domaincontrol.com",
+      "ns04.domaincontrol.com"
+    ],
+    "updated_date": "2023-12-22T08:15:30+00:00",
+    "error": null
+  }
+}

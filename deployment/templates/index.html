@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhishCheck — verify a link before you click it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10131a;
+    --surface:#171c26;
+    --surface-raised:#1e2531;
+    --line:#2a3244;
+    --text:#e9ecf1;
+    --text-dim:#8b93a7;
+    --amber:#e8a33d;
+    --amber-dim:#8a6528;
+    --safe:#4fa88f;
+    --danger:#d65c4f;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:32px 0 0;
+  }
+
+  .mark{
+    width:20px;
+    height:20px;
+    border-radius:3px;
+    background:linear-gradient(155deg, var(--amber), var(--amber-dim));
+    flex:none;
+  }
+
+  .wordmark{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    letter-spacing:0.02em;
+    color:var(--text-dim);
+  }
+
+  .hero{
+    padding:56px 0 8px;
+  }
+
+  h1{
+    font-family:'Source Serif 4', serif;
+    font-weight:600;
+    font-size:clamp(28px, 5vw, 40px);
+    line-height:1.15;
+    margin:0 0 14px;
+    max-width:15ch;
+  }
+
+  .sub{
+    color:var(--text-dim);
+    font-size:16px;
+    max-width:46ch;
+    margin:0 0 36px;
+  }
+
+  form{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  input[type="text"]{
+    flex:1 1 320px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 16px;
+    color:var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+
+  input[type="text"]::placeholder{ color:#5b6478; }
+  input[type="text"]:focus{ border-color:var(--amber); }
+  input[type="text"]:focus-visible{ outline:2px solid var(--amber); outline-offset:1px; }
+
+  button{
+    background:var(--amber);
+    color:#211505;
+    border:none;
+    border-radius:8px;
+    padding:14px 22px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:filter 0.15s ease, transform 0.1s ease;
+  }
+
+  button:hover{ filter:brightness(1.08); }
+  button:active{ transform:translateY(1px); }
+  button:disabled{ opacity:0.6; cursor:progress; }
+  button:focus-visible{ outline:2px solid var(--text); outline-offset:2px; }
+
+  .hint{
+    margin-top:12px;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+
+  .hint code{
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--surface);
+    padding:1px 5px;
+    border-radius:4px;
+  }
+
+  #result{
+    margin-top:40px;
+    display:none;
+  }
+
+  #result.visible{
+    display:block;
+    animation: rise 0.35s ease;
+  }
+
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+  }
+
+  .verdict-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 24px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .verdict-label{
+    font-family:'Source Serif 4', serif;
+    font-size:22px;
+    font-weight:600;
+  }
+
+  .verdict-label.legitimate{ color:var(--safe); }
+  .verdict-label.phishing{ color:var(--danger); }
+
+  .checked-url{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--text-dim);
+    word-break:break-all;
+    margin-top:4px;
+  }
+
+  .confidence{
+    padding:20px 24px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .confidence-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+
+  .bar-track{
+    height:8px;
+    background:var(--surface-raised);
+    border-radius:99px;
+    overflow:hidden;
+  }
+
+  .bar-fill{
+    height:100%;
+    border-radius:99px;
+    transition:width 0.5s ease;
+  }
+
+  .bar-fill.legitimate{ background:var(--safe); }
+  .bar-fill.phishing{ background:var(--danger); }
+
+  .signals{
+    padding:18px 24px 22px;
+  }
+
+  .signals-title{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+
+  .signals ul{
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .signals li{
+    display:flex;
+    gap:10px;
+    padding:7px 0;
+    font-size:14px;
+    color:var(--text);
+  }
+
+  .signals li::before{
+    content:"—";
+    color:var(--text-dim);
+    flex:none;
+  }
+
+  .signals .none{
+    color:var(--text-dim);
+    font-style:italic;
+  }
+
+  .error-box{
+    background:var(--surface);
+    border:1px solid var(--danger);
+    border-radius:10px;
+    padding:16px 18px;
+    color:var(--danger);
+    font-size:14px;
+  }
+
+  footer{
+    margin-top:64px;
+    font-size:12px;
+    color:var(--text-dim);
+    border-top:1px solid var(--line);
+    padding-top:20px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="mark"></div>
+      <div class="wordmark">phishcheck</div>
+    </header>
+
+    <div class="hero">
+      <h1>Check any link before you click it.</h1>
+      <p class="sub">Paste a URL below. A machine learning model trained on real phishing and legitimate sites reads its structure and gives you a verdict in under a second.</p>
+
+      <form id="check-form">
+        <input type="text" id="url-input" name="url" placeholder="https://example.com/reset-password" autocomplete="off" required>
+        <button type="submit" id="submit-btn">Check URL</button>
+      </form>
+      <p class="hint">Try a URL you already trust, then try one that looks off — like <code>bit.ly/xyz123</code>.</p>
+    </div>
+
+    <div id="result"></div>
+
+    <footer>
+      Runs entirely on structural features of the URL itself — no browsing history, cookies, or personal data involved.
+    </footer>
+  </div>
+
+<script>
+const form = document.getElementById('check-form');
+const input = document.getElementById('url-input');
+const btn = document.getElementById('submit-btn');
+const resultBox = document.getElementById('result');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const url = input.value.trim();
+  if (!url) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  resultBox.classList.remove('visible');
+
+  try {
+    const res = await fetch('/api/check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      resultBox.innerHTML = `<div class="error-box">${data.error || 'Something went wrong checking that URL.'}</div>`;
+    } else {
+      const rawPct = data.confidence !== null ? Math.round(data.confidence * 100) : null;
+      const pct = data.verdict === 'phishing' ? rawPct : (rawPct !== null ? 100 - rawPct : null);
+
+      const flagsHtml = data.flags && data.flags.length
+        ? `<ul>${data.flags.map(f => `<li>${f}</li>`).join('')}</ul>`
+        : `<p class="none">No specific red flags detected — the model's decision is based on the combined feature pattern.</p>`;
+
+      const allowlistNote = data.method === 'allowlist'
+        ? `<div class="confidence"><span style="color:var(--safe); font-size:13px;">✓ Verified trusted domain — not scored by the ML model</span></div>`
+        : '';
+
+      resultBox.innerHTML = `
+        <div class="panel">
+          <div class="verdict-row">
+            <div>
+              <div class="verdict-label ${data.verdict}">${data.verdict === 'phishing' ? 'Likely phishing' : 'Looks legitimate'}</div>
+              <div class="checked-url">${data.url}</div>
+            </div>
+          </div>
+          ${pct !== null ? `
+          <div class="confidence">
+            <div class="confidence-row">
+              <span>Model confidence</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill ${data.verdict}" style="width:${pct}%"></div>
+            </div>
+          </div>` : ''}
+          ${allowlistNote}
+          <div class="signals">
+            <div class="signals-title">Signals considered</div>
+            ${flagsHtml}
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    resultBox.innerHTML = `<div class="error-box">Couldn't reach the server. Is app.py still running?</div>`;
+  }
+
+  resultBox.classList.add('visible');
+  btn.disabled = false;
+  btn.textContent = 'Check URL';
+});
+</script>
+</body>
+</html>
